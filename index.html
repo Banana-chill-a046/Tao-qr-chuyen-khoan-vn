@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tạo mã QR chuyển khoản</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 35px;
+            max-width: 520px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header .icon {
+            font-size: 45px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .header h2 {
+            color: #fff;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 6px;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group label i {
+            margin-right: 8px;
+            color: #667eea;
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            font-size: 15px;
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-group select option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+
+        .form-group select:hover,
+        .form-group input:hover,
+        .form-group textarea:hover {
+            border-color: rgba(102, 126, 234, 0.4);
+        }
+
+        .form-group select:focus,
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 50px;
+            font-family: inherit;
+        }
+
+        .form-group .hint {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.35);
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .form-group .hint i {
+            font-size: 11px;
+        }
+
+        .btn-generate {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-generate:active {
+            transform: translateY(0);
+        }
+
+        .btn-generate:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-generate i {
+            margin-right: 8px;
+        }
+
+        /* ===== QR SECTION ===== */
+        .qr-section {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: none;
+            text-align: center;
+        }
+
+        .qr-section.show {
+            display: block;
+            animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .qr-section.hidden {
+            display: none;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .qr-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            border-radius: 16px;
+            min-height: 230px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            border: 2px dashed rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .qr-box.has-qr {
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .qr-box img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .qr-box .loading {
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        .qr-box .loading i {
+            margin-right: 10px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .qr-box .error {
+            color: #ff6b6b;
+            font-size: 14px;
+        }
+
+        .qr-box .error i {
+            margin-right: 8px;
+        }
+
+        .qr-box .placeholder {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 15px;
+        }
+
+        .qr-box .placeholder i {
+            font-size: 40px;
+            display: block;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        /* ===== TIMER ===== */
+        .timer {
+            display: none;
+            margin-top: 16px;
+            padding: 12px 20px;
+            background: rgba(255, 193, 7, 0.12);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            border-radius: 10px;
+            color: #ffd93d;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .timer.show {
+            display: block;
+            animation: pulse 0.8s ease;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .timer .countdown {
+            color: #ff6b6b;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .timer i {
+            margin-right: 8px;
+        }
+
+        /* ===== STATUS ===== */
+        .status-msg {
+            margin-top: 12px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            display: none;
+            font-size: 14px;
+            animation: slideUp 0.3s ease;
+        }
+
+        .status-msg.show {
+            display: block;
+        }
+
+        .status-msg.success {
+            background: rgba(46, 213, 115, 0.15);
+            border: 1px solid rgba(46, 213, 115, 0.2);
+            color: #2ed573;
+        }
+
+        .status-msg.danger {
+            background: rgba(255, 107, 107, 0.15);
+            border: 1px solid rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+        }
+
+        .status-msg.info {
+            background: rgba(54, 164, 235, 0.15);
+            border: 1px solid rgba(54, 164, 235, 0.2);
+            color: #36a4eb;
+        }
+
+        .status-msg i {
+            margin-right: 8px;
+        }
+
+        .info-text {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 10px;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+
+        .info-text i {
+            margin-right: 6px;
+        }
+
+        .btn-refresh {
+            margin-top: 12px;
+            padding: 10px 28px;
+            background: rgba(46, 213, 115, 0.15);
+            color: #2ed573;
+            border: 1px solid rgba(46, 213, 115, 0.2);
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-refresh:hover {
+            background: rgba(46, 213, 115, 0.25);
+            transform: scale(1.03);
+        }
+
+        .btn-refresh:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-refresh i {
+            margin-right: 8px;
+        }
+
+        .note {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.25);
+            margin-top: 14px;
+            letter-spacing: 0.3px;
+        }
+
+        .note i {
+            margin-right: 6px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.4);
+            border-radius: 10px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            .header h2 {
+                font-size: 20px;
+            }
+            .btn-generate {
+                font-size: 16px;
+                padding: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <span class="icon"></span>
+            <h2>Tạo mã QR chuyển khoản</h2>
+            <p>Nhập thông tin và ấn tạo để random nội dung</p>
+        </div>
+
+        <form id="qrForm">
+            <div class="form-group">
+                <label><i class="fas fa-university"></i>Ngân hàng / Ví</label>
+                <select id="bankSelect" required>
+                    <option value="">-- Chọn ngân hàng / ví --</option>
+                    <optgroup label=" Ngân hàng">
+                        <option value="970436">Vietcombank</option>
+                        <option value="970407">Techcombank</option>
+                        <option value="970418">BIDV</option>
+                        <option value="970415">VietinBank</option>
+                        <option value="970422">MB Bank</option>
+                        <option value="970416">ACB</option>
+                        <option value="970403">Sacombank</option>
+                        <option value="970432">VPBank</option>
+                        <option value="970423">TPBank</option>
+                        <option value="970443">SHB</option>
+                        <option value="970437">HDBank</option>
+                        <option value="970440">SeABank</option>
+                        <option value="970426">MSB</option>
+                        <option value="970448">OCB</option>
+                        <option value="970433">VietBank</option>
+                    </optgroup>
+                    <optgroup label=" Ví điện tử">
+                        <option value="971025"> MoMo</option>
+                        <option value="971005"> Viettel Money</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-user"></i>Tên chủ tài khoản</label>
+                <input type="text" id="accountName" placeholder="VD: NGUYEN VAN A" required />
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-hashtag"></i>Số tài khoản / Số điện thoại</label>
+                <input type="text" id="accountNumber" placeholder="VD: 1234567890" required />
+                <div class="hint"><i class="fas fa-info-circle"></i>Nhập số điện thoại cho MoMo/Viettel</div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-pen"></i>Nội dung chuyển khoản</label>
+                <textarea id="content" placeholder="Nhập nội dung..." required></textarea>
+                <div class="hint"><i class="fas fa-sync-alt"></i>Sẽ random mỗi lần ấn tạo</div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-coins"></i>Số tiền (VNĐ)</label>
+                <input type="number" id="amount" placeholder="VD: 100000" required min="1000" step="1000" />
+            </div>
+
+            <button type="submit" class="btn-generate" id="generateBtn">
+                <i class="fas fa-qrcode"></i> Tạo mã QR
+            </button>
+        </form>
+
+        <!-- QR SECTION -->
+        <div class="qr-section" id="qrSection">
+            <div class="qr-box" id="qrBox">
+                <span class="placeholder">
+                    <i class="fas fa-qrcode"></i>
+                    QR sẽ hiển thị ở đây
+                </span>
+            </div>
+
+            <div class="timer" id="timer">
+                <i class="fas fa-hourglass-half"></i>
+                QR có hiệu lực trong <span class="countdown" id="countdown">30</span> giây
+            </div>
+
+            <div class="status-msg" id="statusMsg"></div>
+            <div class="info-text" id="infoText"></div>
+
+            <button class="btn-refresh" id="refreshBtn">
+                <i class="fas fa-sync-alt"></i> Tạo QR mới
+            </button>
+            <p class="note"><i class="fas fa-info-circle"></i>Quét mã QR để chuyển khoản nhanh. QR tự động hết hạn sau 30s</p>
+        </div>
+    </div>
+
+    <script>
+        let timerInterval = null;
+        let countdownValue = 30;
+
+        // ========== TẠO NỘI DUNG RANDOM ==========
+        function generateRandomContent() {
+            const chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789';
+            let result = '';
+            for (let i = 0; i < 12; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        // ========== LẤY TÊN ==========
+        function getBankName(value) {
+            const banks = {
+                '970436': 'Vietcombank',
+                '970407': 'Techcombank',
+                '970418': 'BIDV',
+                '970415': 'VietinBank',
+                '970422': 'MB Bank',
+                '970416': 'ACB',
+                '970403': 'Sacombank',
+                '970432': 'VPBank',
+                '970423': 'TPBank',
+                '970443': 'SHB',
+                '970437': 'HDBank',
+                '970440': 'SeABank',
+                '970426': 'MSB',
+                '970448': 'OCB',
+                '970433': 'VietBank',
+                '971025': 'MoMo',
+                '971005': 'Viettel Money'
+            };
+            return banks[value] || value;
+        }
+
+        // ========== XÓA QR ==========
+        function clearQR() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            const qrSection = document.getElementById('qrSection');
+            qrSection.classList.remove('show');
+            qrSection.classList.add('hidden');
+
+            const qrBox = document.getElementById('qrBox');
+            qrBox.innerHTML = `
+                <span class="placeholder">
+                    <i class="fas fa-qrcode"></i>
+                    QR sẽ hiển thị ở đây
+                </span>
+            `;
+            qrBox.classList.remove('has-qr');
+
+            document.getElementById('timer').classList.remove('show');
+            document.getElementById('generateBtn').disabled = false;
+            document.getElementById('generateBtn').innerHTML = '<i class="fas fa-qrcode"></i> Tạo mã QR';
+            document.getElementById('refreshBtn').disabled = false;
+        }
+
+        // ========== HIỂN THỊ THÔNG BÁO ==========
+        function showStatus(message, type = 'success') {
+            const msg = document.getElementById('statusMsg');
+            msg.innerHTML = message;
+            msg.className = 'status-msg show ' + type;
+            
+            clearTimeout(msg._timeout);
+            msg._timeout = setTimeout(() => {
+                msg.classList.remove('show');
+            }, 5000);
+        }
+
+        // ========== BẮT ĐẦU ĐẾM NGƯỢC ==========
+        function startTimer() {
+            countdownValue = 30;
+            const timerElement = document.getElementById('timer');
+            const countdownElement = document.getElementById('countdown');
+            
+            timerElement.classList.add('show');
+            countdownElement.textContent = countdownValue;
+            countdownElement.style.color = '#ff6b6b';
+            countdownElement.style.fontSize = '24px';
+
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+
+            timerInterval = setInterval(() => {
+                countdownValue--;
+                countdownElement.textContent = countdownValue;
+
+                if (countdownValue <= 5) {
+                    countdownElement.style.color = '#ff6b6b';
+                    countdownElement.style.fontSize = '30px';
+                }
+
+                if (countdownValue <= 0) {
+                    clearQR();
+                    showStatus('<i class="fas fa-clock"></i> QR đã hết hiệu lực! Ấn "Tạo QR mới" để tạo lại.', 'danger');
+                    document.getElementById('infoText').innerHTML = '<i class="fas fa-hourglass-end"></i> QR đã hết hạn';
+                }
+            }, 1000);
+        }
+
+        // ========== TẠO QR ==========
+        function createQR() {
+            // RANDOM NỘI DUNG MỖI LẦN ẤN TẠO
+            const randomContent = generateRandomContent();
+            document.getElementById('content').value = randomContent;
+
+            const bankValue = document.getElementById('bankSelect').value;
+            const bankName = getBankName(bankValue);
+            const accountName = document.getElementById('accountName').value.trim();
+            const accountNumber = document.getElementById('accountNumber').value.trim();
+            const content = document.getElementById('content').value.trim();
+            const amount = document.getElementById('amount').value.trim();
+
+            // Kiểm tra dữ liệu
+            if (!bankValue || !accountName || !accountNumber || !content || !amount) {
+                alert('⚠️ Vui lòng điền đầy đủ thông tin!');
+                return;
+            }
+
+            if (isNaN(amount) || Number(amount) < 1000) {
+                alert('⚠️ Số tiền phải >= 1,000 VNĐ!');
+                return;
+            }
+
+            // Xóa QR cũ
+            clearQR();
+
+            // Disable nút
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('generateBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tạo...';
+            document.getElementById('refreshBtn').disabled = true;
+
+            // Hiển thị QR section
+            const qrSection = document.getElementById('qrSection');
+            qrSection.classList.remove('hidden');
+            qrSection.classList.add('show');
+
+            const qrBox = document.getElementById('qrBox');
+            qrBox.innerHTML = '<span class="loading"><i class="fas fa-spinner"></i> Đang tạo QR...</span>';
+            qrBox.classList.remove('has-qr');
+
+            // Tạo URL VietQR
+            const qrUrl = `https://img.vietqr.io/image/${bankValue}-${accountNumber}-print.jpg?amount=${amount}&addInfo=${encodeURIComponent(content)}&accountName=${encodeURIComponent(accountName)}`;
+
+            const img = document.createElement('img');
+            img.src = qrUrl;
+            img.alt = 'QR Code';
+
+            img.onload = function() {
+                qrBox.innerHTML = '';
+                qrBox.appendChild(img);
+                qrBox.classList.add('has-qr');
+                
+                startTimer();
+                
+                const displayName = bankValue === '971025' ? ' MoMo' : bankValue === '971005' ? ' Viettel Money' : bankName;
+                showStatus(`<i class="fas fa-check-circle"></i> QR ${displayName} đã được tạo! Có hiệu lực 30s`, 'success');
+                document.getElementById('infoText').innerHTML = `<i class="fas fa-coins"></i> ${Number(amount).toLocaleString('vi-VN')} VNĐ - <i class="fas fa-pen"></i> ${content}`;
+                
+                document.getElementById('generateBtn').disabled = false;
+                document.getElementById('generateBtn').innerHTML = '<i class="fas fa-qrcode"></i> Tạo mã QR';
+                document.getElementById('refreshBtn').disabled = false;
+            };
+
+            img.onerror = function() {
+                qrBox.innerHTML = `
+                    <div class="error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Không thể tải QR<br>
+                        <span style="font-size:12px; opacity:0.6;">Vui lòng kiểm tra kết nối Internet</span>
+                    </div>
+                `;
+                
+                showStatus('<i class="fas fa-exclamation-circle"></i> Lỗi tạo QR! Vui lòng thử lại.', 'danger');
+                
+                document.getElementById('generateBtn').disabled = false;
+                document.getElementById('generateBtn').innerHTML = '<i class="fas fa-qrcode"></i> Tạo mã QR';
+                document.getElementById('refreshBtn').disabled = false;
+            };
+
+            qrBox.appendChild(img);
+        }
+
+        // ========== SỰ KIỆN ==========
+        document.getElementById('qrForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            createQR();
+        });
+
+        document.getElementById('refreshBtn').addEventListener('click', function() {
+            createQR();
+        });
+    </script>
+
+</body>
+</html>
